@@ -1,0 +1,166 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgres"
+    url      = env("DATABASE_URL")
+}
+
+enum UserType {
+    USER
+    ADMIN
+}
+
+model User {
+    id             Int                  @id @default(autoincrement())
+    firstName      String
+    lastName       String
+    password       String?
+    email          String               @unique
+    verified       Boolean?             @default(false)
+    active         Boolean              @default(false)
+    isOauth        Boolean              @default(false)
+    type           UserType             @default(USER)
+    oAuthDetails   Json?
+    createdAt      DateTime             @default(now())
+    updatedAt      DateTime             @updatedAt
+    profilePicture UserProfilePicture[]
+    Listing        Listing[]
+    bookingsAsUser Booking[]            @relation("UserBookings")
+    bookingsAsHost Booking[]            @relation("HostBookings")
+}
+
+model UserProfilePicture {
+    id        Int      @id @default(autoincrement())
+    mimeType  String
+    imageUrl  String
+    publicId  String
+    size      String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    userId    Int      @unique
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Listing {
+    id            Int            @id @default(autoincrement())
+    userId        Int
+    user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+    category      String
+    type          String
+    streetAddress String
+    aptSuite      String
+    city          String
+    province      String
+    country       String
+    guestCount    Int
+    bedroomCount  Int
+    bedCount      Int
+    bathroomCount Int
+    amenities     String[]       @default([])
+    listingPhotos ListingPhoto[]
+    title         String
+    description   String
+    price         Float
+    latitude      Float          @default(0)
+    longitude     Float          @default(0)
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
+    Booking       Booking[]
+}
+
+model ListingPhoto {
+    id        Int      @id @default(autoincrement())
+    mimeType  String
+    imageUrl  String
+    publicId  String
+    size      String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    listingId Int
+    listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+enum PropertyType {
+    WholeHome
+    PrivateRoom
+    GuestSuite
+    SharedApartment
+}
+
+model PropertyDetail {
+    id              Int               @id @default(autoincrement())
+    name            String            @unique
+    description     String
+    type            PropertyType
+    price           Int
+    PropertyAddress PropertyAddress[]
+    EssentialDetail EssentialDetail[]
+    PropertyFeature PropertyFeature[]
+    PropertyImage   PropertyImage?
+}
+
+model PropertyAddress {
+    id         Int            @id @default(autoincrement())
+    street     String
+    city       String
+    province   String
+    country    String
+    suite      String?
+    apartment  String?
+    createdAt  DateTime       @default(now())
+    updatedAt  DateTime       @updatedAt
+    propertyId Int            @unique
+    property   PropertyDetail @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model EssentialDetail {
+    id         Int            @id @default(autoincrement())
+    guests     Int
+    bedrooms   Int
+    beds       Int
+    bathrooms  Int
+    createdAt  DateTime       @default(now())
+    updatedAt  DateTime       @updatedAt
+    propertyId Int            @unique
+    property   PropertyDetail @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model PropertyFeature {
+    id         Int            @id @default(autoincrement())
+    features   Json
+    createdAt  DateTime       @default(now())
+    updatedAt  DateTime       @updatedAt
+    propertyId Int            @unique
+    property   PropertyDetail @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model PropertyImage {
+    id         Int            @id @default(autoincrement())
+    image1     Json
+    image2     Json?
+    image3     Json?
+    image4     Json?
+    createdAt  DateTime       @default(now())
+    updatedAt  DateTime       @updatedAt
+    propertyId Int            @unique
+    property   PropertyDetail @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+    id         Int      @id @default(autoincrement())
+    userId     Int
+    hostId     Int
+    listingId  Int
+    totalPrice Float
+    startDate  String
+    endDate    String
+    user       User     @relation("UserBookings", fields: [userId], references: [id], onDelete: Cascade)
+    host       User     @relation("HostBookings", fields: [hostId], references: [id], onDelete: Cascade)
+    listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    @@unique([userId, hostId, listingId])
+}
