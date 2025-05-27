@@ -16,7 +16,11 @@ export default class Booking extends Repo {
                     listingId: booking.listingId,
                     totalPrice: booking.totalPrice,
                     startDate: booking.startDate,
-                    endDate: booking.endDate
+                    endDate: booking.endDate,
+                },
+                include: {
+                    host: true,
+                    user: true
                 }
             });
             return super.repoResponse(false, 201, null, data);

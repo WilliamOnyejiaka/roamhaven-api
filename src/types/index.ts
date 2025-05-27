@@ -1,4 +1,5 @@
 import Redis from "ioredis";
+import { Socket } from "socket.io";
 import { Job, Queue } from "bullmq";
 
 export interface UploadedImageData {
@@ -69,7 +70,6 @@ export interface ImageMeta {
     buffer: any;
 };
 
-
 export default interface Repository {
     getUserWithId?: (id: number) => Promise<{ error: boolean; data?: any }>,
     insert: (data: any) => Promise<{}>,
@@ -88,4 +88,8 @@ export interface ImageRepository {
         type: number;
         data: {};
     }>
+}
+
+export interface ISocket extends Socket {
+    locals?: any
 }

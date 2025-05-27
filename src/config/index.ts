@@ -8,5 +8,6 @@ import twilioClient from "./twilio";
 import streamRouter from "./redisStream";
 import passport from "./passport";
 import session from "./session";
+import initializeIO from "./io";
 
-export { env, corsConfig, redisClient, logger, cloudinary, twilioClient, streamRouter, redisBull, redisSub, redisPub, passport, session };
+export { env, corsConfig, redisClient, logger, cloudinary, twilioClient, streamRouter, redisBull, redisSub, redisPub, passport, session, initializeIO };
