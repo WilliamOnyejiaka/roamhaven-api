@@ -5,7 +5,6 @@ import axios from "axios";
 import Cloudinary from "./Cloudinary";
 import { CdnFolders, ResourceType } from "../types/enums";
 
-
 export default class Listing extends BaseService<ListingRepo> {
 
     public constructor() {

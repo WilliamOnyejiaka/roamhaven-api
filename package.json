@@ -2,7 +2,7 @@
   "name": "roamhaven-api",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/server.ts",
+  "main": "dist/server.js",
   "scripts": {
     "start": "node dist/server.js",
     "dev": "nodemon src/server.ts",
