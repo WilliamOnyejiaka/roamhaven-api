@@ -1,4 +1,3 @@
-import prisma from "./";
 import Repo from "./bases/Repo";
 import { Prisma } from "@prisma/client";
 
@@ -9,7 +8,7 @@ export default class Listing extends Repo {
 
     public async insert(data: any, media: any) {
         try {
-            const newItem = await prisma.listing.create({
+            const newItem = await this.prisma.listing.create({
                 data: {
                     userId: data.userId,
                     category: data.category,

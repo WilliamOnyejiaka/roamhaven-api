@@ -35,6 +35,8 @@ export default class Listing extends BaseService<ListingRepo> {
         const coordinates = await this.geocodeAddress(address);
         listingDto.latitude = coordinates.latitude;
         listingDto.longitude = coordinates.longitude;
+        // listingDto.latitude = 0;
+        // listingDto.longitude = 2;
         const cloudinary = new Cloudinary();
 
         const { uploadedFiles, failedFiles, publicIds } = await cloudinary.upload(listingPhotos, ResourceType.IMAGE, CdnFolders.LISTINGPHOTOS);
@@ -49,10 +51,10 @@ export default class Listing extends BaseService<ListingRepo> {
 
         if (failedFiles.length > 0) return super.responseData(500, true, "Error processing images");
 
-            const repoResult = await this.repo!.insert(listingDto, medias);
-            const repoResultError = this.handleRepoError(repoResult);
-            if (repoResultError) return repoResultError;
-            return super.responseData(201, false, "Listing has been uploaded successfully", repoResult.data);
+        const repoResult = await this.repo!.insert(listingDto, medias);
+        const repoResultError = this.handleRepoError(repoResult);
+        if (repoResultError) return repoResultError;
+        return super.responseData(201, false, "Listing has been uploaded successfully", repoResult.data);
     }
 
     public async getWithId(id: number) {

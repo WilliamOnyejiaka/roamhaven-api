@@ -6,14 +6,12 @@ import {
     listing,
     booking
 } from "./../routes";
-import { validateJWT, validateUser, handleMulterErrors, secureApi } from "./../middlewares";
+import { validateJWT, validateUser, handleMulterErrors, secureApi, validateIOJwt } from "./../middlewares";
 import asyncHandler from "express-async-handler";
 import cors from "cors";
-import { config } from "dotenv";
-import { UserType } from "../types/enums";
+import { Namespaces, UserType } from "../types/enums";
 import http from 'http';
-
-config();
+import { notification } from "./../events";
 
 
 async function createApp() {
@@ -31,13 +29,23 @@ async function createApp() {
     app.use(morgan("combined", { stream }));
     app.use(express.json());
 
-    // Configure session with RedisStore
     app.use(session);
     app.use(passport.initialize());
     app.use(passport.session());
 
+    const notificationNamespace = io.of(Namespaces.NOTIFICATION);
+
+    notificationNamespace.use(validateIOJwt([UserType.ADMIN, UserType.USER]));
+
+    notification.initialize(notificationNamespace, io);
+
+    app.use((req: Request, res: Response, next: NextFunction) => {
+        res.locals.io = io;
+        next();
+    });
+
     app.use("/api/v1/auth", auth);
-    app.use("/api/v1/listing", validateJWT([UserType.USER]), listing);
+    app.use("/api/v1/listing", listing);
     app.use("/api/v1/booking", validateJWT([UserType.USER]), booking);
 
     app.post("/test2", async (req, res) => {
@@ -55,7 +63,7 @@ async function createApp() {
             message: "Route not found. Please check the URL or refer to the API documentation.",
         })
     });
-    return app;
+    return server;
 }
 
 

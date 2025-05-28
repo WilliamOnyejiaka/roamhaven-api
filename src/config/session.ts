@@ -1,14 +1,14 @@
 import session from "express-session";
 import { RedisStore } from "connect-redis";
-import { redisClient } from ".";
+import { redisClient, env } from ".";
 
 export default session({
     store: new RedisStore({ client: redisClient }),
-    secret: process.env.SESSION_SECRET || 'your-secret-key-here',
+    secret: env('sessionSecret')!,
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        secure: env('envType')! === 'prod', // Use secure cookies in production
         maxAge: 1000 * 60 * 60 * 24 // 1 day expiration (adjust as needed)
     }
 });

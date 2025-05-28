@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import prisma from "..";
 import Repo from "./Repo";
 
 export default class AssetRepo extends Repo {
@@ -50,7 +49,7 @@ export default class AssetRepo extends Repo {
 
             assetImage && (data[this.imageRelation] = { create: assetImage });
 
-            const newAsset = await (prisma[this.tblName] as any).create({
+            const newAsset = await (this.prisma[this.tblName] as any).create({
                 data: data
             });
 

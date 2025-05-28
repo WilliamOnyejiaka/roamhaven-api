@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import prisma from "..";
-import { ImageRepository } from "../../interfaces/Repository";
+import { ImageRepository } from "../../types";
 import Repo from "./Repo";
 
 export default class ImageRepo extends Repo implements ImageRepository {
@@ -17,7 +16,7 @@ export default class ImageRepo extends Repo implements ImageRepository {
         delete data.parentId;
 
         try {
-            const newImage = await (prisma[this.tblName] as any).create({
+            const newImage = await (this.prisma[this.tblName] as any).create({
                 data: { ...data, ...parentColumn },
             });
             return super.repoResponse(false, 201, null, newImage);
@@ -28,7 +27,7 @@ export default class ImageRepo extends Repo implements ImageRepository {
 
     public async getImage(id: number) {
         try {
-            const image = await (prisma[this.tblName] as any).findUnique({
+            const image = await (this.prisma[this.tblName] as any).findUnique({
                 where: {
                     [this.parentIdName]: id
                 }
@@ -41,7 +40,7 @@ export default class ImageRepo extends Repo implements ImageRepository {
 
     public async getImages(id: number) {
         try {
-            const image = await (prisma[this.tblName] as any).findMany({
+            const image = await (this.prisma[this.tblName] as any).findMany({
                 where: {
                     [this.parentIdName]: id
                 }

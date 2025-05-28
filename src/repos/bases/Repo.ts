@@ -1,5 +1,5 @@
 import { Prisma, PrismaClient } from "@prisma/client";
-import prisma from "..";
+import { prisma } from "./../../config";
 import { http } from "../../constants";
 import Repository from "./../../types";
 import { logger } from "../../config";
@@ -129,7 +129,7 @@ export default class Repo<T = any> implements Repository {
         }
     }
 
-    
+
 
     public async paginate(skip: number, take: number, filter: any = {}, countFilter: any = {}): Promise<RepoResponse<{ items: T[], totalItems: any } | {}>> {
         try {

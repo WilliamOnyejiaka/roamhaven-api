@@ -9,5 +9,24 @@ import streamRouter from "./redisStream";
 import passport from "./passport";
 import session from "./session";
 import initializeIO from "./io";
+import { prisma, connectMongoDB, connectPrisma, mongoose } from "./db";
 
-export { env, corsConfig, redisClient, logger, cloudinary, twilioClient, streamRouter, redisBull, redisSub, redisPub, passport, session, initializeIO };
+export {
+    env,
+    corsConfig,
+    redisClient,
+    logger,
+    cloudinary,
+    twilioClient,
+    streamRouter,
+    redisBull,
+    redisSub,
+    redisPub,
+    passport,
+    session,
+    initializeIO,
+    prisma,
+    connectMongoDB,
+    connectPrisma,
+    mongoose
+};

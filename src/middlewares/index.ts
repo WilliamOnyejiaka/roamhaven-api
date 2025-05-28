@@ -7,6 +7,7 @@ import secureApi from "./secureApi";
 import redisClientMiddleware from "./redisClientMiddleware";
 // import adminAuthorization from "./adminAuthorization";
 import validateBody from "./validateBody";
+import validateIOJwt from "./validateIOJwt";
 
 export {
     getBasicAuthHeader,
@@ -17,5 +18,6 @@ export {
     validateBody,
     secureApi,
     redisClientMiddleware,
+    validateIOJwt
     // adminAuthorization,
 };

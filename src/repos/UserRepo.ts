@@ -1,5 +1,4 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-import prisma from "./";
 import Repo from "./bases/Repo";
 
 export default class UserRepo extends Repo {
@@ -12,7 +11,7 @@ export default class UserRepo extends Repo {
 
     async insertWithImage(data: any, media: any) {
         try {
-            const newItem = await prisma.user.create({
+            const newItem = await this.prisma.user.create({
                 data: {
                     ...data,
                     profilePicture: {

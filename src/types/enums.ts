@@ -35,27 +35,6 @@ export enum ResourceType {
     AUTO = "auto"
 };
 
-
-export default function imageFolders(key: string) {
-    const basePath = "ecommerce-cdn";
-    const profilePicture = `${basePath}/profile-picture`;
-    const store = `${basePath}/store`;
-    const category = `${basePath}/category`;
-
-    return {
-        'vendorProfilePic': profilePicture + "/vendor",
-        'adminProfilePic': profilePicture + "/admin",
-        'customerProfilePic': profilePicture + "/customer",
-        'storeLogo': store + "/store-logo",
-        'firstStoreBanner': store + "/banner/first-store-banner",
-        'secondStoreBanner': store + "/banner/second-store-banner",
-        'category': category + "/category",
-        'subCategory': category + "/subcategory",
-        'subSubCategory': category + "/subsubcategory",
-        'adBanner': basePath + "/ad-banner"
-    }[key];
-}
-
 const basePath = "kc-cdn";
 
 export enum CdnFolders {
@@ -63,7 +42,9 @@ export enum CdnFolders {
     LISTINGPHOTOS = "kc-cdn/listing-photos"
 };
 
-
+export enum Namespaces {
+    NOTIFICATION = "/notification"
+};
 
 export enum StreamGroups {
     USER = "user",

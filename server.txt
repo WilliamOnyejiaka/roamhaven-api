@@ -1,0 +1,79 @@
+import cluster from 'cluster';
+import * as os from 'os';
+import createApp from './config/app';
+import { env } from './config';
+import prisma from './repos';
+import winston from 'winston';
+import retry from 'async-retry';
+
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+  transports: [new winston.transports.File({ filename: 'combined.log' })],
+});
+
+const environmentType = env('envType') || 'prod';
+const PORT = env('port') || '3000';
+const isContainerized = env('IS_CONTAINERIZED') === 'true';
+
+async function connectWithRetry() {
+  return retry(
+    async () => {
+      await prisma.$connect();
+      logger.info(`Worker ${process.pid} connected to the database`);
+    },
+    {
+      retries: 5,
+      factor: 2,
+      minTimeout: 1000,
+      maxTimeout: 5000,
+    }
+  ).catch((error) => {
+    logger.error(`Worker ${process.pid} failed to connect to database:`, error);
+    process.exit(1);
+  });
+}
+
+async function startServer() {
+  const app = await createApp();
+  const numCpu = os.cpus().length; // Use all cores
+
+  if (cluster.isPrimary) {
+    logger.info(`Primary ${process.pid} is running`);
+    for (let i = 0; i < numCpu; i++) {
+      cluster.fork();
+    }
+
+    cluster.on('exit', (worker, code, signal) => {
+      logger.warn(`Worker ${worker.process.pid} died with code ${code}, signal ${signal}`);
+      logger.info('Starting a new worker');
+      cluster.fork();
+    });
+
+    cluster.on('online', (worker) => logger.info(`Worker ${worker.process.pid} is online`));
+  } else {
+    await connectWithRetry();
+    app.listen(PORT, () => logger.info(`Worker ${process.pid} running on port ${PORT}`));
+
+    process.on('SIGTERM', async () => {
+      logger.info(`Worker ${process.pid} shutting down`);
+      await prisma.$disconnect();
+      process.exit(0);
+    });
+  }
+}
+
+(async () => {
+  if (!env('DATABASE_URL')) {
+    logger.error('DATABASE_URL is not defined');
+    process.exit(1);
+  }
+
+  if (isContainerized || environmentType === 'dev') {
+    const app = await createApp();
+    await connectWithRetry();
+    app.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
+  } else {
+    await startServer();
+  }
+})();

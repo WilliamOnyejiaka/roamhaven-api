@@ -42,6 +42,8 @@ export default class Listing {
             userId: res.locals.data.id
         };
 
+        // res.status(200).json(data);
+
         const result = await Listing.service.createListing(data, listingPhotos);
         Controller.response(res, result);
     }
