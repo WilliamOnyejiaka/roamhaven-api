@@ -4,7 +4,8 @@ import { cloudinary, corsConfig, env, logger, redisBull, redisPub, redisSub, red
 import {
     auth,
     listing,
-    booking
+    booking,
+    wishList
 } from "./../routes";
 import { validateJWT, validateUser, handleMulterErrors, secureApi, validateIOJwt } from "./../middlewares";
 import asyncHandler from "express-async-handler";
@@ -47,6 +48,8 @@ async function createApp() {
     app.use("/api/v1/auth", auth);
     app.use("/api/v1/listing", listing);
     app.use("/api/v1/booking", validateJWT([UserType.USER]), booking);
+    app.use("/api/v1/wishlist", validateJWT([UserType.USER]), wishList);
+
 
     app.post("/test2", async (req, res) => {
         res.status(200).json({

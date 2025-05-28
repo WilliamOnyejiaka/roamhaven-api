@@ -1,6 +1,6 @@
 import BaseService from "./bases/BaseService";
 import { Listing as ListingRepo } from "../repos";
-import { ListingDto } from "../types/dtos";
+import { ListingDto, MapListingDto } from "../types/dtos";
 import axios from "axios";
 import Cloudinary from "./Cloudinary";
 import { CdnFolders, ResourceType } from "../types/enums";
@@ -20,22 +20,22 @@ export default class Listing extends BaseService<ListingRepo> {
             );
             if (response.data.features && response.data.features.length > 0) {
                 const [longitude, latitude] = response.data.features[0].center;
-                return { latitude, longitude };
+                return { error: false, latitude, longitude };
             }
-            return { latitude: 0, longitude: 0 }; // Default to 0 if geocoding fails
+            return { error: true, latitude: 0, longitude: 0 }; // Default to 0 if geocoding fails
         } catch (err: any) {
             console.error("Geocoding failed:", err.message);
-            return { latitude: 0, longitude: 0 };
+            return { error: true, latitude: 0, longitude: 0 };
         }
     };
 
     public async createListing(listingDto: ListingDto, listingPhotos: Express.Multer.File[]) {
         const address = `${listingDto.streetAddress}${listingDto.aptSuite ? `, ${listingDto.aptSuite}` : ''}, ${listingDto.city}, ${listingDto.province}, ${listingDto.country}`;
         const coordinates = await this.geocodeAddress(address);
+        if (coordinates.error) return super.responseData(500, true, "Failed to get listings coordinates");
         listingDto.latitude = coordinates.latitude;
         listingDto.longitude = coordinates.longitude;
-        // listingDto.latitude = 0;
-        // listingDto.longitude = 2;
+
         const cloudinary = new Cloudinary();
 
         const { uploadedFiles, failedFiles, publicIds } = await cloudinary.upload(listingPhotos, ResourceType.IMAGE, CdnFolders.LISTINGPHOTOS);
@@ -94,5 +94,12 @@ export default class Listing extends BaseService<ListingRepo> {
         const totalRecords = data.totalItems;
         const pagination = this.getPagination(page, limit, totalRecords);
         return super.responseData(200, false, "Items were retrieved successfully", { items: data.items, pagination });
+    }
+
+    public async mapListings(mapListingDto: MapListingDto) {
+        const repoResult = await this.repo!.mapListings(mapListingDto);
+        const repoResultError = this.handleRepoError(repoResult);
+        if (repoResultError) return repoResultError;
+        return super.responseData(200, false, "Items were retrieved successfully", repoResult.data);
     }
 }

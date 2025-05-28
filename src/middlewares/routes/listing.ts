@@ -7,8 +7,7 @@ import {
     paramNumberIsValid,
     passwordIsValid,
     queryIsValidNumber,
-    tokenIsPresent,
-    userEmailExists
+    queryValueIsPresent
 } from "../validators";
 import uploads from "../multer";
 
@@ -47,3 +46,10 @@ export const pagination = [
 export const idIsValid = [
     paramNumberIsValid('id')
 ];
+
+export const map = [
+    queryValueIsPresent('country'),
+    queryValueIsPresent('city'),
+    queryValueIsPresent('province')
+];
+

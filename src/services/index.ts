@@ -6,6 +6,7 @@ import Cloudinary from "./Cloudinary";
 import Authentication from "./Authentication";
 import Listing from "./Listing";
 import Booking from "./Booking";
+import WishList from "./WishList";
 
 export {
     Token,
@@ -15,5 +16,6 @@ export {
     Cloudinary,
     Authentication,
     Listing,
-    Booking
+    Booking,
+    WishList
 };

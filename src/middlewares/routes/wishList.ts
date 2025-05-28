@@ -8,12 +8,8 @@ import {
 export const create = [
     validateBody([
         'listingId',
-        'startDate',
-        'endDate',
-        'totalPrice'
     ]),
     bodyNumberIsValid('listingId'),
-    bodyNumberIsValid('totalPrice')
 ];
 
 export const pagination = [

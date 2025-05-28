@@ -149,6 +149,13 @@ const validateQueryNumber = (name: string) => (value: string) => {
     return true;
 }
 
+const validateQuery = (name: string) => (value: string) => {
+    if (!value) {
+        throw new Error(errorDetails(`${name} query param must be present`, HttpStatus.BAD_REQUEST));
+    }
+    return true;
+}
+
 
 export const passwordIsValid = body('password').custom(isValidPassword); // Custom password validation
 export const phoneNumberIsValid = body('phoneNumber').custom(isValidPhoneNumber);
@@ -166,3 +173,4 @@ export const pageQueryIsValid = query('page').custom(validateQueryNumber('page')
 export const pageSizeQueryIsValid = query('pageSize').custom(validateQueryNumber('pageSize'));
 export const queryIsValidNumber = (queryName: string) => query(queryName).custom(validateQueryNumber(queryName));
 export const bodyBooleanIsValid = (bodyName: string) => body(bodyName).custom(isValidBoolean(`${bodyName} must be a boolean`));
+export const queryValueIsPresent = (queryName: string) => query(queryName).custom(validateQuery(queryName));

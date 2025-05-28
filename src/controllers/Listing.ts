@@ -1,10 +1,7 @@
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 import Controller from "./bases/Controller";
-import { Listing as ListingRepo } from "../repos";
-import { Cloudinary } from "../services";
-import { CdnFolders, ResourceType } from "../types/enums";
-import { ListingDto } from "../types/dtos";
+import { ListingDto, MapListingDto } from "../types/dtos";
 import { Listing as Service } from "./../services";
 
 export default class Listing {
@@ -42,8 +39,6 @@ export default class Listing {
             userId: res.locals.data.id
         };
 
-        // res.status(200).json(data);
-
         const result = await Listing.service.createListing(data, listingPhotos);
         Controller.response(res, result);
     }
@@ -66,10 +61,28 @@ export default class Listing {
         Controller.response(res, result);
     }
 
-
     public static async listing(req: Request, res: Response) {
         const id = Number(req.params.id);
         const result = await Listing.service.getWithId(id);
+        Controller.response(res, result);
+    }
+
+    public static async mapListings(req: Request, res: Response) {
+        const validationErrors = validationResult(req);
+
+        if (!validationErrors.isEmpty()) {
+
+            Controller.handleValidationErrors(res, validationErrors);
+            return;
+        }
+        
+        const data: MapListingDto = {
+            country: req.query.country as string,
+            province: req.query.province as string,
+            city: req.query.city as string
+        };
+
+        const result = await Listing.service.mapListings(data);
         Controller.response(res, result);
     }
 }

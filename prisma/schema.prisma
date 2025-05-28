@@ -29,6 +29,7 @@ model User {
     Listing        Listing[]
     bookingsAsUser Booking[]            @relation("UserBookings")
     bookingsAsHost Booking[]            @relation("HostBookings")
+    WishList       WishList[]
 }
 
 model UserProfilePicture {
@@ -68,6 +69,7 @@ model Listing {
     createdAt     DateTime       @default(now())
     updatedAt     DateTime       @updatedAt
     Booking       Booking[]
+    WishList      WishList[]
 }
 
 model ListingPhoto {
@@ -163,4 +165,16 @@ model Booking {
     updatedAt  DateTime @updatedAt
 
     @@unique([userId, hostId, listingId])
+}
+
+model WishList {
+    id        Int      @id @default(autoincrement())
+    userId    Int
+    listingId Int
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([userId, listingId])
 }

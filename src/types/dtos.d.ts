@@ -69,3 +69,17 @@ export interface BookingDto {
     createdAt?: Date,
     updatedAt?: Date
 }
+
+export interface WishListDto {
+    id?: number,
+    userId: number,
+    listingId: number,
+    createdAt?: Date,
+    updatedAt?: Date
+}
+
+export interface MapListingDto {
+    country: string,
+    province: string,
+    city: string
+}

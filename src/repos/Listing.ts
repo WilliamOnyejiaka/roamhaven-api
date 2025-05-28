@@ -1,3 +1,4 @@
+import { MapListingDto } from "../types/dtos";
 import Repo from "./bases/Repo";
 import { Prisma } from "@prisma/client";
 
@@ -149,5 +150,35 @@ export default class Listing extends Repo {
         }
     }
 
+    public async mapListings(mapListingDto: MapListingDto) {
+        try {
+            const data = await this.prisma.listing.findMany({
+                where: {
+                    country: {
+                        contains: mapListingDto.country,
+                        mode: 'insensitive' as Prisma.QueryMode
+                    },
+                    province: {
+                        contains: mapListingDto.province,
+                        mode: 'insensitive' as Prisma.QueryMode
+                    },
+                    city: {
+                        contains: mapListingDto.city,
+                        mode: 'insensitive' as Prisma.QueryMode
+                    },
+                },
+                include: {
+                    listingPhotos: {
+                        select: {
+                            imageUrl: true
+                        }
+                    }
+                }
+            });
+            return this.repoResponse(false, 200, null, data);
+        } catch (error) {
+            return this.handleDatabaseError(error);
+        }
+    }
 
 }
