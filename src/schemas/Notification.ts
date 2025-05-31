@@ -1,23 +1,23 @@
 import { mongoose } from "../config";
 
 export interface INotification extends mongoose.Document {
-    userId: string;
-    type: string; // e.g., 'transactional', 'marketing'
+    userId: number;
+    type: 'transactional' | 'marketing' | 'listing' | 'chat'; 
     channel: string; // e.g., 'email', 'push'
     content: string;
-    status: string; // e.g., 'pending', 'sent', 'failed'
+    status: 'pending' | 'sent' | 'failed';
     priority: number;
-    sendAt?: Date;
-}
+    createdAt?: Date;
+    updatedAt?: Date;
+};
 
 const notificationSchema = new mongoose.Schema<INotification>({
-    userId: { type: String, required: true },
-    type: { type: String, required: true },
+    userId: { type: Number, required: true },
+    type: { type: String, enum: ['transactional', 'marketing', 'listing', 'chat'], required: true },
     channel: { type: String, required: true },
     content: { type: String, required: true },
-    status: { type: String, default: 'pending' },
+    status: { type: String, enum: ['pending', 'sent', 'failed'], default: 'pending' },
     priority: { type: Number, default: 1 },
-    sendAt: { type: Date },
-});
+}, { timestamps: true });
 
-export const NotificationModel = mongoose.model<INotification>('Notification', notificationSchema);
+export const NotificationModel = mongoose.model<INotification>('notification', notificationSchema);

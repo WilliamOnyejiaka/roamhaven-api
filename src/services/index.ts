@@ -7,6 +7,7 @@ import Authentication from "./Authentication";
 import Listing from "./Listing";
 import Booking from "./Booking";
 import WishList from "./WishList";
+import Notification from "./Notification";
 
 export {
     Token,
@@ -17,5 +18,6 @@ export {
     Authentication,
     Listing,
     Booking,
-    WishList
+    WishList,
+    Notification
 };

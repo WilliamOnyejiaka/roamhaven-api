@@ -1,19 +1,34 @@
 import { mongoose } from "../../config";
 
+interface ModelResponse<T> {
+    error: boolean;
+    data: T | T[] | null;
+    message?: string;
+    errorCode?: string;
+}
+
 export default class Model<T extends mongoose.Document> {
     private model: mongoose.Model<T>;
+    protected mongoose = mongoose;
 
     constructor(model: mongoose.Model<T>) {
         this.model = model;
     }
 
     // Create a new document
-    async create(data: Partial<T>): Promise<T> {
+    async create(data: Partial<T>): Promise<{ error: boolean, data: T | null }> {
         try {
             const document = new this.model(data);
-            return await document.save();
+            return {
+                error: false,
+                data: await document.save()
+            };
         } catch (error: any) {
-            throw new Error(`Error creating document: ${error.message}`);
+            console.error(`Error creating document: ${error.message}`);
+            return {
+                error: true,
+                data: null
+            };
         }
     }
 
@@ -65,5 +80,35 @@ export default class Model<T extends mongoose.Document> {
     //     } catch (error: any) {
     //         throw new Error(`Error querying documents: ${error.message}`);
     //     }
+    // }
+
+    // private handleError(method: string, error: any): ModelResponse<T> {
+    //     let message = `Error in ${method} for model ${this.modelName}`;
+    //     let errorCode = "UNKNOWN_ERROR";
+
+    //     if (error instanceof mongoose.Error) {
+    //         if (error.name === "ValidationError") {
+    //             message = `Validation error in ${method} for ${this.modelName}: ${error.message}`;
+    //             errorCode = "VALIDATION_ERROR";
+    //         } else if (error.name === "CastError") {
+    //             message = `Invalid ID format in ${method} for ${this.modelName}: ${error.message}`;
+    //             errorCode = "INVALID_ID";
+    //         } else if (error.code === 11000) {
+    //             message = `Duplicate key error in ${method} for ${this.modelName}: ${error.message}`;
+    //             errorCode = "DUPLICATE_KEY";
+    //         }
+    //     } else {
+    //         message = `${message}: ${error.message || "Unknown error"}`;
+    //     }
+
+    //     // Log error (could be configured to use a logging service)
+    //     console.error(`[${new Date().toISOString()}] ${message}`);
+
+    //     return {
+    //         error: true,
+    //         data: null,
+    //         message,
+    //         errorCode,
+    //     };
     // }
 }

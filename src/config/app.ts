@@ -12,7 +12,7 @@ import asyncHandler from "express-async-handler";
 import cors from "cors";
 import { Namespaces, UserType } from "../types/enums";
 import http from 'http';
-import { notification } from "./../events";
+import { notification, chat } from "./../events";
 
 
 async function createApp() {
@@ -35,10 +35,13 @@ async function createApp() {
     app.use(passport.session());
 
     const notificationNamespace = io.of(Namespaces.NOTIFICATION);
+    const chatNamespace = io.of(Namespaces.CHAT);
 
     notificationNamespace.use(validateIOJwt([UserType.ADMIN, UserType.USER]));
+    chatNamespace.use(validateIOJwt([UserType.ADMIN, UserType.USER]));
 
     notification.initialize(notificationNamespace, io);
+    chat.initialize(chatNamespace, io);
 
     app.use((req: Request, res: Response, next: NextFunction) => {
         res.locals.io = io;

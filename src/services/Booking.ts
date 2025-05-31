@@ -1,6 +1,8 @@
 import BaseService from "./bases/BaseService";
 import { Booking as BookingRepo, Listing } from "../repos";
 import { BookingDto } from "../types/dtos";
+import { Server } from "socket.io";
+import { Notification } from ".";
 
 export default class Booking extends BaseService<BookingRepo> {
 
@@ -10,7 +12,7 @@ export default class Booking extends BaseService<BookingRepo> {
         super(new BookingRepo());
     }
 
-    public async book(bookingDto: BookingDto) {
+    public async book(bookingDto: BookingDto, io: Server) {
         const listingExists = await this.listingRepo.getWithId(bookingDto.listingId);
         const listingExistsError = this.handleRepoError(listingExists);
 
@@ -21,9 +23,14 @@ export default class Booking extends BaseService<BookingRepo> {
         if (bookingDto.userId == hostId) return super.responseData(400, true, "User cannot book their listing");
 
         bookingDto.hostId = hostId;
+
         const repoResult = await this.repo!.insertBooking(bookingDto);
         const repoResultError = this.handleRepoError(repoResult);
         if (repoResultError) return repoResultError;
+
+        const notificationService = new Notification();
+        const notified = await notificationService.notify(hostId, 'listing', repoResult.data, io);
+
         return super.responseData(201, false, "Booking was successful", repoResult.data);
     }
 

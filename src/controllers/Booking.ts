@@ -3,6 +3,7 @@ import { validationResult } from "express-validator";
 import Controller from "./bases/Controller";
 import { Booking as Service } from "../services";
 import { BookingDto } from "../types/dtos";
+import { Server } from "socket.io";
 
 export default class Booking {
 
@@ -22,7 +23,8 @@ export default class Booking {
             userId
         };
 
-        const result = await Booking.service.book(data);
+        const io: Server = res.locals.io;
+        const result = await Booking.service.book(data, io);
         Controller.response(res, result);
     }
 

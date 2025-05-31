@@ -8,6 +8,8 @@ import { env } from '../config';
 const validateIOJwt = (types: string[], neededData: string[] = ['data']) => async (socket: ISocket, next: (err?: any) => void) => {
     const token = socket.handshake.auth.token || socket.handshake.headers['token'];
     if (!token) {
+        // socket.disconnect(true);
+
         socket.emit('appError', {
             error: true,
             message: "Token missing",
@@ -18,24 +20,32 @@ const validateIOJwt = (types: string[], neededData: string[] = ['data']) => asyn
     const cache = new TokenBlackList();
     const isBlacklistedResult = await cache.get(token);
 
-    if (isBlacklistedResult.error) return next({
-        statusCode: 401,
-        message: "User Id is missing",
-        type: "MISSING_KEY"
-    });
+    if (isBlacklistedResult.error) {
+        // socket.disconnect(true);
+
+        return next({
+            statusCode: 401,
+            message: "User Id is missing",
+            type: "MISSING_KEY"
+        });
+    }
 
 
-    if (isBlacklistedResult.data) return next({
-        error: true,
-        message: "Token is invalid",
-        statusCode: 401
-    });
+    if (isBlacklistedResult.data) {
+        // socket.disconnect(true);
+        return next({
+            error: true,
+            message: "Token is invalid",
+            statusCode: 401
+        });
+    }
 
     const tokenSecret: string = env("tokenSecret")!;
     const tokenValidationResult: any = Token.validateToken(token, types, tokenSecret);
 
     if (tokenValidationResult.error) {
         const statusCode = tokenValidationResult.message == http("401") ? 401 : 400;
+        // socket.disconnect(true);
         return next({
             error: true,
             message: tokenValidationResult.message,

@@ -43,8 +43,13 @@ export enum CdnFolders {
 };
 
 export enum Namespaces {
-    NOTIFICATION = "/notification"
+    NOTIFICATION = "/notification",
+    CHAT = "/chat"
 };
+
+export enum SocketEvents {
+    ERROR = "appError"
+}
 
 export enum StreamGroups {
     USER = "user",
