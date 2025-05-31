@@ -3,7 +3,6 @@ import { IMessage, messageSchema } from "./Message";
 
 export interface IChat extends mongoose.Document {
     participants: Number[];
-    messages?: mongoose.Types.ObjectId[];
     lastMessage: mongoose.Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
@@ -14,14 +13,10 @@ const chatSchema: mongoose.Schema<IChat> = new mongoose.Schema({
         type: Number,
         required: true
     }],
-    messages: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Message'
-    }],
     lastMessage: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Message', // Reference to the last message in the chat
-    } 
+    }
 }, { timestamps: true });
 
 chatSchema.index({ participants: 1 });

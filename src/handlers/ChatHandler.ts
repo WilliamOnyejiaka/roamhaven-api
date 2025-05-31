@@ -38,6 +38,7 @@ export default class ChatHandler {
         const cache = await ChatHandler.userSocketCache.get(userId);
         if (cache.error) {
             socket.emit("appError", Handler.responseData(500, true, "An internal error occurred"));
+            return;
         }
         const socketData = cache.data;
 
@@ -54,7 +55,6 @@ export default class ChatHandler {
     public static async sendMessage(io: Server, socket: ISocket, data: any) {
         const userId = Number(socket.locals.data.id);
         const chatNamespace = io.of(Namespaces.CHAT);
-        const notificationNamespace = io.of(Namespaces.NOTIFICATION);
         const socketId = socket.id;
         const chatModel = new Chat();
         const messageModel = new Message();
@@ -93,18 +93,25 @@ export default class ChatHandler {
                 content,
                 media: [],
                 status: recipientIsOnline ? 'sent' : 'pending'
-            }
+            };
+
             const modelResponse = await chatModel.createWithMessages(chatDto, messageDto);
             if (modelResponse.error) {
                 socket.emit(SocketEvents.ERROR, Handler.responseData(500, true, "Something went wrong"));
                 return;
             }
-            // console.log(modelResponse);
-            socket.emit('sentMessage', Handler.responseData(200, false, null, modelResponse));
+
+            console.log(`✅ New chat has been created`);
+            const room = modelResponse.data?.chat._id as string;
+            socket.emit('sentMessage', Handler.responseData(200, false, null,));
+            // chatNamespace.sockets.get(socketId)?.join(room);
             if (recipientIsOnline) {
-                chatNamespace.sockets.get(recipientSocketId)?.join(chatId);
+                // chatNamespace.sockets.get(recipientSocketId)?.join(room);
                 socket.to(recipientSocketId).emit('newChat', Handler.responseData(200, false, null, modelResponse));
+                console.log(`✅ Message sent directly to user ${recipientId} via socket ${recipientSocketId}`);
             }
+
+            return;
         } else {
 
             const messageDto: MessageDto = {
@@ -116,9 +123,10 @@ export default class ChatHandler {
                 chat: chatId
             };
             const modelResponse = await messageModel.create(messageDto as any);
-            // console.log(modelResponse);
-            if (modelResponse.error) {
 
+            if (modelResponse.error) {
+                socket.emit(SocketEvents.ERROR, Handler.responseData(500, true, "Something went wrong"));
+                return;
             }
 
             // const senderSocket = io.sockets.sockets.get(socketId); // Get socket by ID
@@ -130,6 +138,8 @@ export default class ChatHandler {
             if (recipientIsOnline && !recipientIsInRoom) chatNamespace.sockets.get(recipientSocketId)?.join(chatId);
 
             chatNamespace.to(chatId).emit('receiveMessage', Handler.responseData(200, false, null, modelResponse));
+            console.log(`✅ Message sent successfully to room ${chatId}`);
+            return;
         }
     }
 }

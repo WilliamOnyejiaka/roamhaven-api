@@ -84,8 +84,6 @@ export default class Chat extends Model<IChat> {
             await message.save();
 
             // Update chat
-            chat.messages = chat.messages as any || [] as any;
-            chat.messages?.push((message as any)._id);
             chat.lastMessage = (message as any)._id;
             await chat.save();
 
