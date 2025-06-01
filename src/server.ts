@@ -38,7 +38,7 @@ async function startServer() {
             process.on('SIGTERM', async () => {
                 logger.info(`Worker ${process.pid} shutting down`);
                 await Promise.all([
-                    mongoose.connection.close(),
+                    // mongoose.connection.close(),
                     prisma.$disconnect(),
                 ]);
                 process.exit(0);
