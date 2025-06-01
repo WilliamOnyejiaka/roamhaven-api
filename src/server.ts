@@ -11,6 +11,24 @@ async function startServer() {
     const numCpu = (os.cpus().length) - 1; // TODO: note this
 
     if (cluster.isPrimary) {
+
+        try {
+            await Promise.all([connectMongoDB()]);
+            console.log(`Worker ${process.pid} has connected to the mongodb database`);
+            app.listen(PORT, () => console.log(`Server running on port - ${PORT}\n`));
+
+            process.on('SIGTERM', async () => {
+                logger.info(`Worker ${process.pid} shutting down`);
+                await Promise.all([
+                    mongoose.connection.close(),
+                ]);
+                process.exit(0);
+            });
+        } catch (error) {
+            console.error('Failed to connect to the mongodb database:', error);
+            process.exit(1); // Exit if connection fails
+        }
+
         for (let i = 0; i < numCpu; i++) cluster.fork();
 
         cluster.on('exit', (worker, code, signal) => {
@@ -22,20 +40,19 @@ async function startServer() {
         cluster.on('online', (worker) => console.log(`Worker ${worker.process.pid} is online`));
     } else {
         try {
-            await Promise.all([connectMongoDB(), connectPrisma()]);
-            console.log(`Worker ${process.pid} has connected to the database`);
+            await Promise.all([connectPrisma()]);
+            console.log(`Worker ${process.pid} has connected to the postgresql database`);
             app.listen(PORT, () => console.log(`Server running on port - ${PORT}\n`));
 
             process.on('SIGTERM', async () => {
                 logger.info(`Worker ${process.pid} shutting down`);
                 await Promise.all([
-                    mongoose.connection.close(),
                     prisma.$disconnect(),
                 ]);
                 process.exit(0);
             });
         } catch (error) {
-            console.error('Failed to connect to the database:', error);
+            console.error('Failed to connect to the postgresql database:', error);
             process.exit(1); // Exit if connection fails
         }
     }
