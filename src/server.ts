@@ -10,13 +10,13 @@ async function startServer() {
     const app = await createApp();
     const numCpu = (os.cpus().length) - 1; // TODO: note this
 
-    if (cluster.isPrimary) {
-        try {
-            await connectMongoDB();
-        } catch (error) {
-            console.error('Failed to connect to mongodb database:', error);
-        }
-    }
+    // if (cluster.isPrimary) {
+    //     try {
+    //         await connectMongoDB();
+    //     } catch (error) {
+    //         console.error('Failed to connect to mongodb database:', error);
+    //     }
+    // }
 
     if (cluster.isPrimary) {
         for (let i = 0; i < numCpu; i++) cluster.fork();
