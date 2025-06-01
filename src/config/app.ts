@@ -48,6 +48,11 @@ async function createApp() {
         next();
     });
 
+    app.use((req, res, next) => {
+        console.log(`Worker ${process.pid} handling request for ${req.url}`);
+        next();
+    });
+
     app.use("/api/v1/auth", auth);
     app.use("/api/v1/listing", listing);
     app.use("/api/v1/booking", validateJWT([UserType.USER]), booking);
