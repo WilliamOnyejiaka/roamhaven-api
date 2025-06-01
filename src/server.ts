@@ -12,6 +12,14 @@ async function startServer() {
     const numCpu = (os.cpus().length) - 1; // TODO: note this
 
     if (cluster.isPrimary) {
+        try {
+            await connectMongoDB();
+        } catch (error) {
+            console.error('Failed to connect to mongodb database:', error);
+        }
+    }
+
+    if (cluster.isPrimary) {
         for (let i = 0; i < numCpu; i++) cluster.fork();
 
         cluster.on('exit', (worker, code, signal) => {
@@ -23,7 +31,7 @@ async function startServer() {
         cluster.on('online', (worker) => console.log(`Worker ${worker.process.pid} is online`));
     } else {
         try {
-            await Promise.all([connectMongoDB(), connectPrisma()]);
+            await Promise.all([connectPrisma()]);
             console.log(`Worker ${process.pid} has connected to the database`);
             app.listen(PORT, () => console.log(`Server running on port - ${PORT}\n`));
 
