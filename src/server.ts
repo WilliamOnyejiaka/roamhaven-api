@@ -6,17 +6,10 @@ import { env, connectMongoDB, connectPrisma, logger, prisma, mongoose } from "./
 let environmentType = env('envType');
 const PORT = env('port');
 
+// Server Logic
 async function startServer() {
     const app = await createApp();
     const numCpu = (os.cpus().length) - 1; // TODO: note this
-
-    // if (cluster.isPrimary) {
-    //     try {
-    //         await connectMongoDB();
-    //     } catch (error) {
-    //         console.error('Failed to connect to mongodb database:', error);
-    //     }
-    // }
 
     if (cluster.isPrimary) {
         for (let i = 0; i < numCpu; i++) cluster.fork();
@@ -30,8 +23,7 @@ async function startServer() {
         cluster.on('online', (worker) => console.log(`Worker ${worker.process.pid} is online`));
     } else {
         try {
-            // await Promise.all([connectPrisma()]);
-            await prisma.$connect();
+            await Promise.all([connectMongoDB(), connectPrisma()]);
             console.log(`Worker ${process.pid} has connected to the database`);
             app.listen(PORT, () => console.log(`Server running on port - ${PORT}\n`));
 
