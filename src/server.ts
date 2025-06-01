@@ -30,7 +30,8 @@ async function startServer() {
         cluster.on('online', (worker) => console.log(`Worker ${worker.process.pid} is online`));
     } else {
         try {
-            await Promise.all([connectPrisma()]);
+            // await Promise.all([connectPrisma()]);
+            await prisma.$connect();
             console.log(`Worker ${process.pid} has connected to the database`);
             app.listen(PORT, () => console.log(`Server running on port - ${PORT}\n`));
 
