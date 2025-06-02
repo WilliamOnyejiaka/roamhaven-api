@@ -5,30 +5,41 @@ import { env, logger } from ".";
 
 const prisma: PrismaClient = new PrismaClient();
 
-async function connectMongoDB() {
-    mongoose.set('strictQuery', false);
 
+const connectMongoDB = async () => {
     try {
         await mongoose.connect(env('mongodbURI')!);
-    } catch (error) {
-        console.error("Failed to connect to MongoDB: ", error);
+        console.log('MongoDB Connected...');
+    } catch (err: any) {
+        console.error(err.message);
+        process.exit(1); // Exit process with failure
     }
-    // return retry(
-    //     async () => {
-    //         await mongoose.connect(env('mongodbURI')!, { maxPoolSize: 2 }); // TODO: - note this - Limit connections per worker
-    //         logger.info(`Worker ${process.pid} connected to MongoDB`);
-    //     },
-    //     {
-    //         retries: 5,
-    //         factor: 2,
-    //         minTimeout: 1000,
-    //         maxTimeout: 5000,
-    //     }
-    // ).catch((error) => {
-    //     logger.error(`Worker ${process.pid} failed to connect to MongoDB:`, error);
-    //     throw error; // Rethrow to handle in caller
-    // });
-}
+};
+
+// async function connectMongoDB() {
+//     mongoose.set('strictQuery', false);
+
+//     try {
+//         await mongoose.connect(env('mongodbURI')!);
+//     } catch (error) {
+//         console.error("Failed to connect to MongoDB: ", error);
+//     }
+//     // return retry(
+//     //     async () => {
+//     //         await mongoose.connect(env('mongodbURI')!, { maxPoolSize: 2 }); // TODO: - note this - Limit connections per worker
+//     //         logger.info(`Worker ${process.pid} connected to MongoDB`);
+//     //     },
+//     //     {
+//     //         retries: 5,
+//     //         factor: 2,
+//     //         minTimeout: 1000,
+//     //         maxTimeout: 5000,
+//     //     }
+//     // ).catch((error) => {
+//     //     logger.error(`Worker ${process.pid} failed to connect to MongoDB:`, error);
+//     //     throw error; // Rethrow to handle in caller
+//     // });
+// }
 
 async function connectPrisma() {
     return retry(
