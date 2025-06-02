@@ -25,9 +25,9 @@ async function startServer() {
         try {
             await Promise.all([connectPrisma()]);
             console.log(`Worker ${process.pid} has connected to the database`);
-            mongoose.connection.once('open', () => {
-                app.listen(PORT, () => console.log(`Server running on port - ${PORT}\n`));
-            });
+            // mongoose.connection.once('open', () => {
+            app.listen(PORT, () => console.log(`Server running on port - ${PORT}\n`));
+            // });
 
             process.on('SIGTERM', async () => {
                 logger.info(`Worker ${process.pid} shutting down`);
