@@ -1,6 +1,6 @@
 import express, { Application, NextFunction, Request, Response } from "express";
 import morgan from "morgan";
-import { cloudinary, corsConfig, env, logger, redisBull, redisPub, redisSub, redisClient, passport, session, initializeIO } from ".";
+import { cloudinary, corsConfig, env, logger, redisBull, redisPub, redisSub, redisClient, passport, session, initializeIO, connectMongoDB } from ".";
 import {
     auth,
     listing,
@@ -23,6 +23,8 @@ async function createApp() {
         write: (message: string) => logger.http(message.trim()),
     };
     const io = await initializeIO(server, redisPub, redisSub);
+
+    await connectMongoDB();
 
     app.use(express.urlencoded({ extended: true }));
     app.use(cors());

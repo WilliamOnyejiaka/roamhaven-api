@@ -12,34 +12,27 @@ async function startServer() {
     const numCpu = (os.cpus().length) - 1; // TODO: note this
 
     if (cluster.isPrimary) {
+        for (let i = 0; i < numCpu; i++) cluster.fork();
 
-        try {
-            await connectMongoDB();
-            mongoose.connection.once('open', () => {
-                for (let i = 0; i < numCpu; i++) cluster.fork();
+        cluster.on('exit', (worker, code, signal) => {
+            console.log(`worker ${worker.process.pid} died`);
+            console.log('Starting a new worker');
+            cluster.fork();
+        });
 
-                cluster.on('exit', (worker, code, signal) => {
-                    console.log(`worker ${worker.process.pid} died`);
-                    console.log('Starting a new worker');
-                    cluster.fork();
-                });
-
-                cluster.on('online', (worker) => console.log(`Worker ${worker.process.pid} is online`));
-            });
-
-        } catch (error) {
-            console.error('Failed to connect to mongodb database:', error);
-        }
+        cluster.on('online', (worker) => console.log(`Worker ${worker.process.pid} is online`));
     } else {
         try {
             await Promise.all([connectPrisma()]);
             console.log(`Worker ${process.pid} has connected to the database`);
-            app.listen(PORT, () => console.log(`Server running on port - ${PORT}\n`));
+            mongoose.connection.once('open', () => {
+                app.listen(PORT, () => console.log(`Server running on port - ${PORT}\n`));
+            });
 
             process.on('SIGTERM', async () => {
                 logger.info(`Worker ${process.pid} shutting down`);
                 await Promise.all([
-                    // mongoose.connection.close(),
+                    mongoose.connection.close(),
                     prisma.$disconnect(),
                 ]);
                 process.exit(0);
