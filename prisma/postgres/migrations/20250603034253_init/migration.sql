@@ -55,8 +55,8 @@ CREATE TABLE "Listing" (
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "price" DOUBLE PRECISION NOT NULL,
-    "latitude" INTEGER NOT NULL DEFAULT 0,
-    "longitude" INTEGER NOT NULL DEFAULT 0,
+    "latitude" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "longitude" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -143,6 +143,32 @@ CREATE TABLE "PropertyImage" (
     CONSTRAINT "PropertyImage_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Booking" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "hostId" INTEGER NOT NULL,
+    "listingId" INTEGER NOT NULL,
+    "totalPrice" DOUBLE PRECISION NOT NULL,
+    "startDate" TEXT NOT NULL,
+    "endDate" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Booking_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "WishList" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "listingId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "WishList_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -164,6 +190,12 @@ CREATE UNIQUE INDEX "PropertyFeature_propertyId_key" ON "PropertyFeature"("prope
 -- CreateIndex
 CREATE UNIQUE INDEX "PropertyImage_propertyId_key" ON "PropertyImage"("propertyId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Booking_userId_hostId_listingId_key" ON "Booking"("userId", "hostId", "listingId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "WishList_userId_listingId_key" ON "WishList"("userId", "listingId");
+
 -- AddForeignKey
 ALTER TABLE "UserProfilePicture" ADD CONSTRAINT "UserProfilePicture_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -184,3 +216,18 @@ ALTER TABLE "PropertyFeature" ADD CONSTRAINT "PropertyFeature_propertyId_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "PropertyImage" ADD CONSTRAINT "PropertyImage_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "PropertyDetail"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Booking" ADD CONSTRAINT "Booking_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Booking" ADD CONSTRAINT "Booking_hostId_fkey" FOREIGN KEY ("hostId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Booking" ADD CONSTRAINT "Booking_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WishList" ADD CONSTRAINT "WishList_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WishList" ADD CONSTRAINT "WishList_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE CASCADE ON UPDATE CASCADE;

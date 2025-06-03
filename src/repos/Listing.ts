@@ -1,6 +1,6 @@
 import { MapListingDto } from "../types/dtos";
 import Repo from "./bases/Repo";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma-postgres/client";
 
 export default class Listing extends Repo {
     constructor() {

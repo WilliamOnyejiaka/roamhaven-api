@@ -1,5 +1,5 @@
-import { Prisma, PrismaClient } from "@prisma/client";
-import { prisma } from "./../../config";
+import { Prisma, PrismaClient } from "@prisma-postgres/client";
+import { postgresClient, mongodbClient } from "./../../config";
 import { http } from "../../constants";
 import Repository from "./../../types";
 import { logger } from "../../config";
@@ -15,7 +15,7 @@ interface RepoResponse<T> {
 export default class Repo<T = any> implements Repository {
 
     protected tblName: keyof PrismaClient;
-    protected prisma = prisma;
+    protected prisma = postgresClient;
     protected imageRows = {
         select: {
             imageUrl: true,
@@ -30,7 +30,7 @@ export default class Repo<T = any> implements Repository {
 
     public async insert<T = any>(data: T, include: any = {}): Promise<RepoResponse<T | any>> {
         try {
-            const newItem = await (prisma[this.tblName] as any).create({ data: data, include: include });
+            const newItem = await (this.prisma[this.tblName] as any).create({ data: data, include: include });
             return this.repoResponse(false, 201, null, newItem);
         } catch (error) {
             return this.handleDatabaseError(error);
@@ -39,7 +39,7 @@ export default class Repo<T = any> implements Repository {
 
     public async insertMany(data: any[]) {
         try {
-            const newItems = await (prisma[this.tblName] as any).createMany({ data: data, skipDuplicates: true });
+            const newItems = await (this.prisma[this.tblName] as any).createMany({ data: data, skipDuplicates: true });
             return this.repoResponse(false, 201, null, newItems);
         } catch (error) {
             return this.handleDatabaseError(error);
@@ -61,7 +61,7 @@ export default class Repo<T = any> implements Repository {
 
     protected async getItemWithRelation(where: any, include: any) {
         try {
-            const item = await (prisma[this.tblName] as any).findUnique({
+            const item = await (this.prisma[this.tblName] as any).findUnique({
                 where: where,
                 include: include
             });
@@ -73,7 +73,7 @@ export default class Repo<T = any> implements Repository {
 
     protected async getItem(where: any, others: any = {}) {
         try {
-            const item = await (prisma[this.tblName] as any).findFirst({
+            const item = await (this.prisma[this.tblName] as any).findFirst({
                 where: where,
                 ...others
             });
@@ -85,7 +85,7 @@ export default class Repo<T = any> implements Repository {
 
     public async clearTable() {
         try {
-            const result = await (prisma[this.tblName] as any).deleteMany({});
+            const result = await (this.prisma[this.tblName] as any).deleteMany({});
             return this.repoResponse(false, 200, null, { recordCount: result.count });
         } catch (error: any) {
             return this.handleDatabaseError(error);
@@ -94,7 +94,7 @@ export default class Repo<T = any> implements Repository {
 
     public async delete(where: any) {
         try {
-            const deletedData = await (prisma[this.tblName] as any).delete({
+            const deletedData = await (this.prisma[this.tblName] as any).delete({
                 where: where,
             });
             return this.repoResponse(false, 200, null, deletedData);
@@ -109,7 +109,7 @@ export default class Repo<T = any> implements Repository {
 
     protected async update(where: any, data: any) {
         try {
-            const updatedItem = await (prisma[this.tblName] as any).update({
+            const updatedItem = await (this.prisma[this.tblName] as any).update({
                 where: where,
                 data: data
             });
@@ -122,7 +122,7 @@ export default class Repo<T = any> implements Repository {
 
     public async countTblRecords(countFilter: any = {}) {
         try {
-            const count = await (prisma[this.tblName] as any).count(countFilter);
+            const count = await (this.prisma[this.tblName] as any).count(countFilter);
             return this.repoResponse(false, 200, null, count);
         } catch (error) {
             return this.handleDatabaseError(error);
@@ -133,12 +133,12 @@ export default class Repo<T = any> implements Repository {
 
     public async paginate(skip: number, take: number, filter: any = {}, countFilter: any = {}): Promise<RepoResponse<{ items: T[], totalItems: any } | {}>> {
         try {
-            const items = await (prisma[this.tblName] as any).findMany({ // TODO: use a transaction
+            const items = await (this.prisma[this.tblName] as any).findMany({ // TODO: use a transaction
                 skip,   // Skips the first 'skip' records
                 take,   // Fetches 'take' records
                 ...filter
             });
-            const totalItems = await (prisma[this.tblName] as any).count(countFilter);
+            const totalItems = await (this.prisma[this.tblName] as any).count(countFilter);
 
             return this.repoResponse(false, 200, null, {
                 items: items,
@@ -151,7 +151,7 @@ export default class Repo<T = any> implements Repository {
 
     public async getAll(where: any = {}, filter: any = {}) {
         try {
-            const items = await (prisma[this.tblName] as any).findMany({
+            const items = await (this.prisma[this.tblName] as any).findMany({
                 where: where,
                 ...filter
             });
@@ -163,7 +163,7 @@ export default class Repo<T = any> implements Repository {
 
     public async getAllWithFilter(filter: any = {}) {
         try {
-            const items = await (prisma[this.tblName] as any).findMany(filter);
+            const items = await (this.prisma[this.tblName] as any).findMany(filter);
             return this.repoResponse(false, 200, null, items);
         } catch (error) {
             return this.handleDatabaseError(error);

@@ -1,7 +1,7 @@
 import cluster from "cluster";
 import * as os from "os";
 import createApp from "./config/app";
-import { env, connectMongoDB, connectPrisma, logger, prisma, mongoose } from "./config";
+import { env, connectMongoDB, connectPrisma, logger, mongoose } from "./config";
 
 let environmentType = env('envType');
 const PORT = env('port');

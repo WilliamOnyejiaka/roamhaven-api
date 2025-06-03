@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient as PostgresClient } from "@prisma-postgres/client";
+import { PrismaClient as MongoDBClient } from "@prisma-mongo/client";
 import retry from 'async-retry';
 import { MongoClient, Db } from 'mongodb';
 import { env, logger } from ".";
 
-const prisma: PrismaClient = new PrismaClient();
+const postgresClient: PostgresClient = new PostgresClient();
+const mongodbClient: MongoDBClient = new MongoDBClient();
 
 async function connectMongo() {
     mongoose.set('strictQuery', false);
@@ -29,7 +31,7 @@ async function connectMongo() {
 async function connectPrisma() {
     return retry(
         async () => {
-            await prisma.$connect();
+            await postgresClient.$connect();
             logger.info(`Worker ${process.pid} connected to Prisma database`);
         },
         {
@@ -87,4 +89,4 @@ const getDb = () => {
     return db!;
 };
 
-export { prisma, connectMongo, connectMongoDB, getDb, connectPrisma, mongoose, mongoDbClient };
+export { postgresClient, mongodbClient, connectMongo, connectMongoDB, getDb, connectPrisma, mongoose, mongoDbClient };

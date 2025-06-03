@@ -14,6 +14,7 @@ import { Namespaces, UserType } from "../types/enums";
 import http from 'http';
 import { notification, chat } from "./../events";
 import MongoDBRepo from "../repos/bases/MongoDB";
+import { mongodbClient } from ".";
 
 
 async function createApp() {
@@ -67,12 +68,22 @@ async function createApp() {
             type: string
         };
 
-        const mon = new MongoDBRepo("notifications");
+        // const mon = new MongoDBRepo("notifications");
         // await mon.connect();
 
         res.status(200).json({
             'error': false,
-            'message': await mon.findById("6839fb4039f802ad0d31b9aa")
+            // 'message': await mon.findById("6839fb4039f802ad0d31b9aa")
+            'data': await mongodbClient.notification.create({
+                data: {
+                    userId: 1,
+                    status: 'pending',
+                    content: "Testing",
+                    channel: "push",
+                    priority: 1,
+                    type: "listing"
+                }
+            })
         });
     });
 

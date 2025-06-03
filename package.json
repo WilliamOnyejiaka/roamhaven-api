@@ -6,11 +6,13 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "nodemon src/server.ts",
-    "change": "npx prisma generate && npx prisma migrate dev --name init --create-only",
+    "postgres": "npx prisma generate --schema=prisma/postgres/schema.prisma",
+    "mongo": "npx prisma generate --schema=prisma/mongo/schema.prisma",
+    "change": "npx prisma generate --schema=prisma/postgres/schema.prisma && npx prisma migrate dev --schema=prisma/postgres/schema.prisma --name init --create-only",
     "build": "tsc -p . && npm run copy-views",
     "copy-views": "cp -R src/views dist/views",
-    "migrate": "npx prisma migrate deploy",
-    "db-reset": "npx prisma migrate reset --force",
+    "migrate": "npx prisma migrate deploy --schema=prisma/postgres/schema.prisma",
+    "db-reset": "npx prisma migrate reset --schema=prisma/postgres/schema.prisma --force",
     "format": "npx prisma format",
     "cli": "ts-node src/console/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -19,7 +21,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^6.6.0",
+    "@prisma/client": "^6.8.2",
     "@socket.io/redis-adapter": "^8.3.0",
     "@socket.io/sticky": "^1.0.4",
     "@types/uuid": "^10.0.0",
@@ -91,7 +93,7 @@
     "@types/twilio": "^3.19.3",
     "@types/winston": "^2.4.4",
     "nodemon": "^3.1.7",
-    "prisma": "^6.6.0",
+    "prisma": "^6.8.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
   }
