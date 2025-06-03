@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma-postgres/client";
 import { ImageRepository } from "../../types";
 import Repo from "./Repo";
 

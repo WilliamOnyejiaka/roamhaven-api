@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma-postgres/client";
 import Repo from "./Repo";
 
 export default class Like extends Repo {
