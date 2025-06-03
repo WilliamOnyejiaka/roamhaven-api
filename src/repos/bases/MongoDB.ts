@@ -1,84 +1,222 @@
-import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
-import { env, logger } from "./../../config";
+import { Prisma, PrismaClient } from "@prisma-mongo/client";
+import { mongodbClient } from "./../../config";
+import { http } from "../../constants";
+import Repository from "./../../types";
+import { logger } from "../../config";
 
-interface Pet {
-    type: string
-};
+// Define a generic type for the repository response
+interface RepoResponse<T> {
+    error: boolean;
+    message: string | null;
+    type: number;
+    data: T;
+}
 
-export default class MongoDBRepo<T extends Pet> {
-    protected client: MongoClient;
-    protected collection: Collection<T>;
-    protected dbName: string = 'sockets_db';
-    protected collectionName: string;
-    private db: Db;
+export default class MongoDB<T = any> implements Repository {
 
-    public constructor(collectionName: string) {
-        this.client = new MongoClient(env('mongodbURI')!);
-        this.collectionName = collectionName;
-        this.db = this.client.db(this.dbName);
-        this.collection = this.db.collection<T>(this.collectionName);
+    protected tblName: keyof PrismaClient;
+    protected prisma = mongodbClient;
+    
+    protected imageRows = {
+        select: {
+            imageUrl: true,
+            publicId: true,
+            mimeType: true
+        },
     }
 
-    // Connect to MongoDB
-    async connect() {
+    public constructor(tblName: keyof PrismaClient) {
+        this.tblName = tblName;
+    }
+
+    public async insert<T = any>(data: T, include: any = {}): Promise<RepoResponse<T | any>> {
         try {
-            await this.client.connect();
-            console.log("Connected")
+            const newItem = await (this.prisma[this.tblName] as any).create({ data: data, include: include });
+            return this.repoResponse(false, 201, null, newItem);
         } catch (error) {
-            logger.error("Failed to connect to mongodb");
+            return this.handleDatabaseError(error);
         }
     }
 
-
-    // Close connection
-    protected async close() {
+    public async insertMany(data: any[]) {
         try {
-            await this.client.close();
+            const newItems = await (this.prisma[this.tblName] as any).createMany({ data: data, skipDuplicates: true });
+            return this.repoResponse(false, 201, null, newItems);
         } catch (error) {
-            logger.error("Failed to close mongodb connection");
+            return this.handleDatabaseError(error);
         }
     }
 
-    // READ: Find one document by ID
-    async findById(id: string) {
+    public async checkIfTblHasData() {
+        const result = await this.countTblRecords();
+        return result.error ? result : this.repoResponse(false, 200, null, result.data > 0);
+    }
+
+    public async getItemWithId(id: number | string) {
+        return await this.getItem({ id: id });
+    }
+
+    public async getItemWithName(name: string) {
+        return await this.getItem({ name: name });
+    }
+
+    protected async getItemWithRelation(where: any, include: any) {
         try {
-            await this.connect();
-            return await this.collection.findOne({ _id: new ObjectId(id) } as any);
-        } finally {
-            await this.close();
+            const item = await (this.prisma[this.tblName] as any).findUnique({
+                where: where,
+                include: include
+            });
+            return this.repoResponse(false, 200, null, item);
+        } catch (error) {
+            return this.handleDatabaseError(error);
         }
     }
 
-    // // Get a collection with type safety
-    // getUsersCollection(): Collection<User> {
-    //     return this.db.collection<User>('users');
-    // }
+    protected async getItem(where: any, others: any = {}) {
+        try {
+            const item = await (this.prisma[this.tblName] as any).findFirst({
+                where: where,
+                ...others
+            });
+            return this.repoResponse(false, 200, null, item);
+        } catch (error) {
+            return this.handleDatabaseError(error);
+        }
+    }
 
-    // // Example: Insert a user
-    // async insertUser(user: User) {
-    //     const collection = this.getUsersCollection();
-    //     const result = await collection.insertOne(user);
-    //     return result;
-    // }
+    public async clearTable() {
+        try {
+            const result = await (this.prisma[this.tblName] as any).deleteMany({});
+            return this.repoResponse(false, 200, null, { recordCount: result.count });
+        } catch (error: any) {
+            return this.handleDatabaseError(error);
+        }
+    }
 
-    // // Example: Find a user by email
-    // async findUserByEmail(email: string) {
-    //     const collection = this.getUsersCollection();
-    //     return await collection.findOne({ email });
-    // }
+    public async delete(where: any) {
+        try {
+            const deletedData = await (this.prisma[this.tblName] as any).delete({
+                where: where,
+            });
+            return this.repoResponse(false, 200, null, deletedData);
+        } catch (error: any) {
+            return this.handleDatabaseError(error);
+        }
+    }
 
-    // // Example: Update a user
-    // async updateUser(email: string, update: Partial<User>) {
-    //     const collection = this.getUsersCollection();
-    //     const result = await collection.updateOne({ email }, { $set: update });
-    //     return result;
-    // }
+    public async deleteWithId(id: number | string) {
+        return await this.delete({ id: id });
+    }
 
-    // // Example: Delete a user
-    // async deleteUser(email: string) {
-    //     const collection = this.getUsersCollection();
-    //     const result = await collection.deleteOne({ email });
-    //     return result;
-    // }
+    protected async update(where: any, data: any) {
+        try {
+            const updatedItem = await (this.prisma[this.tblName] as any).update({
+                where: where,
+                data: data
+            });
 
+            return this.repoResponse(false, 200, null, updatedItem);
+        } catch (error: any) {
+            return this.handleDatabaseError(error);
+        }
+    }
+
+    public async countTblRecords(countFilter: any = {}) {
+        try {
+            const count = await (this.prisma[this.tblName] as any).count(countFilter);
+            return this.repoResponse(false, 200, null, count);
+        } catch (error) {
+            return this.handleDatabaseError(error);
+        }
+    }
+
+
+
+    public async paginate(skip: number, take: number, filter: any = {}, countFilter: any = {}): Promise<RepoResponse<{ items: T[], totalItems: any } | {}>> {
+        try {
+            const items = await (this.prisma[this.tblName] as any).findMany({ // TODO: use a transaction
+                skip,   // Skips the first 'skip' records
+                take,   // Fetches 'take' records
+                ...filter
+            });
+            const totalItems = await (this.prisma[this.tblName] as any).count(countFilter);
+
+            return this.repoResponse(false, 200, null, {
+                items: items,
+                totalItems: totalItems
+            });
+        } catch (error) {
+            return this.handleDatabaseError(error);
+        }
+    }
+
+    public async getAll(where: any = {}, filter: any = {}) {
+        try {
+            const items = await (this.prisma[this.tblName] as any).findMany({
+                where: where,
+                ...filter
+            });
+            return this.repoResponse(false, 200, null, items);
+        } catch (error) {
+            return this.handleDatabaseError(error);
+        }
+    }
+
+    public async getAllWithFilter(filter: any = {}) {
+        try {
+            const items = await (this.prisma[this.tblName] as any).findMany(filter);
+            return this.repoResponse(false, 200, null, items);
+        } catch (error) {
+            return this.handleDatabaseError(error);
+        }
+    }
+
+    // Standardized response
+    protected repoResponse<TData>(
+        error: boolean,
+        type: number,
+        message: string | null,
+        data: TData
+    ): RepoResponse<TData> {
+        return { error, message, type, data: data };
+    }
+
+    protected handleDatabaseError(error: any) {
+        console.log(error);
+
+        if (error.code === "P2002") {
+            // Unique constraint violation
+            logger.error(`Unique constraint violation error for the ${this.tblName.toString()} table`);
+            return this.repoResponse(true, 400, "A record with this data already exists.", {});
+        } else if (error.code === "P2025") {
+            logger.error(`Item was not found for the ${this.tblName.toString()} table`);
+            return this.repoResponse(true, 400, "Item was not found.", {});
+        } else if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            // Handle known Prisma errors
+            switch (error.code) {
+                case "P2003":
+                    // Foreign key constraint violation
+                    logger.error(`Foreign key constraint violation error for the ${this.tblName.toString()} table`);
+                    return this.repoResponse(true, 400, `Invalid foreign key reference. Please check related fields.`, {});
+                case "P2001":
+                    // Record not found
+                    logger.error(`Record not found for the ${this.tblName.toString()} table`);
+                    return this.repoResponse(true, 400, "The requested record could not be found.", {});
+                case "P2000":
+                    // Value too long for a column
+                    logger.error(`Value too long for a column for the ${this.tblName.toString()} table`);
+                    return this.repoResponse(true, 400, "A value provided is too long for one of the fields.", {});
+                default:
+                    logger.error(`An unexpected database error occurred for the ${this.tblName.toString()} table`, error.message);
+                    return this.repoResponse(true, 500, "An unexpected database error occurred.", {});
+            }
+        } else if (error instanceof Prisma.PrismaClientValidationError) {
+            logger.error(`Validation error in the ${this.tblName.toString()} table`);
+            return this.repoResponse(true, 400, 'Invalid data provided. Please check that all fields are correctly formatted.', {});
+        }
+
+        // Fallback for unexpected errors
+        logger.error(error);
+        return this.repoResponse(true, 400, http("500")!, {});
+    }
 }

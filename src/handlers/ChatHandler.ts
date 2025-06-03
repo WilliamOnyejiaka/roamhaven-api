@@ -3,19 +3,17 @@ import { ISocket } from "../types";
 import { UserSocket } from "../cache";
 import Handler from "./Handler";
 import { Namespaces, SocketEvents } from "../types/enums";
-import { Chat, Message } from "../models";
+import { Chat, Message } from "../repos";
 
 interface ChatDto {
-    senderId: number,
-    recipientId: number
-}
+    participants: number[]
+};
 
 interface MessageDto {
     sender: number,
     recipient: number,
     content: string,
-    media: any[],
-    chat?: string,
+    chatId?: string,
     status: string,
 }
 
@@ -83,27 +81,25 @@ export default class ChatHandler {
         if (!chatId) {
             console.log(`💬 Creating new chat for room `);
             const chatDto: ChatDto = {
-                recipientId: Number(recipientId),
-                senderId: userId
+                participants: [Number(recipientId), userId]
             };
 
             const messageDto: MessageDto = {
                 sender: userId,
                 recipient: recipientId,
                 content,
-                media: [],
-                status: recipientIsOnline ? 'sent' : 'pending'
+                status: recipientIsOnline ? 'PENDING' : 'SENT',
             };
 
-            const modelResponse = await chatModel.createWithMessages(chatDto, messageDto);
+            const modelResponse = await chatModel.insertChat(chatDto, messageDto);
             if (modelResponse.error) {
                 socket.emit(SocketEvents.ERROR, Handler.responseData(500, true, "Something went wrong"));
                 return;
             }
 
             console.log(`✅ New chat has been created`);
-            const room = modelResponse.data?.chat._id as string;
-            socket.emit('sentMessage', Handler.responseData(200, false, null,));
+            const room = (modelResponse.data as any).id as string;
+            socket.emit('sentMessage', Handler.responseData(200, false, null, modelResponse.data));
             // chatNamespace.sockets.get(socketId)?.join(room);
             if (recipientIsOnline) {
                 // chatNamespace.sockets.get(recipientSocketId)?.join(room);
@@ -118,11 +114,10 @@ export default class ChatHandler {
                 sender: userId,
                 recipient: recipientId,
                 content,
-                media: [],
-                status: recipientIsOnline ? 'pending' : 'sent',
-                chat: chatId
+                status: recipientIsOnline ? 'PENDING' : 'SENT',
+                chatId
             };
-            const modelResponse = await messageModel.create(messageDto as any);
+            const modelResponse = await messageModel.insertMessage(messageDto as any);
 
             if (modelResponse.error) {
                 socket.emit(SocketEvents.ERROR, Handler.responseData(500, true, "Something went wrong"));

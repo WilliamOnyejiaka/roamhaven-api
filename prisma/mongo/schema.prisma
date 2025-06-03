@@ -8,14 +8,86 @@ datasource db {
     url      = env("MONGODB_URI")
 }
 
+enum NotificationType {
+    TRANSACTIONAL
+    MARKETING
+    LISTING
+    CHAT
+}
+
+enum NotificationChannel {
+    EMAIL
+    PUSH
+}
+
+enum NotificationStatus {
+    PENDING
+    SENT
+    FAILED
+}
+
 model Notification {
-    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    id        String              @id @default(auto()) @map("_id") @db.ObjectId
     userId    Int
-    type      String
-    channel   String
-    content   String
+    type      NotificationType
+    channel   NotificationChannel @default(PUSH)
+    content   Json
     status    String
-    priority  Int
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    priority  Int                 @default(1)
+    createdAt DateTime            @default(now())
+    updatedAt DateTime            @updatedAt
+
+    @@index([userId])
+}
+
+model Chat {
+    id           String    @id @default(auto()) @map("_id") @db.ObjectId
+    participants Int[]
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime  @updatedAt
+    Message      Message[]
+}
+
+enum MessageStatus {
+    READ
+    PENDING
+    SENT
+    FAILED
+}
+
+enum MediaType {
+    IMAGE
+    VIDEO
+    AUDIO
+    FILE
+}
+
+model Message {
+    id        String        @id @default(auto()) @map("_id") @db.ObjectId
+    sender    Int
+    content   String
+    recipient Int
+    media     Media[]
+    chatId    String        @db.ObjectId
+    chat      Chat          @relation(fields: [chatId], references: [id], onDelete: Cascade)
+    status    MessageStatus
+    createdAt DateTime      @default(now())
+    updatedAt DateTime      @updatedAt
+
+    @@index([recipient])
+    @@index([sender])
+    @@index([chatId])
+}
+
+model Media {
+    id         String    @id @default(auto()) @map("_id") @db.ObjectId
+    url        String
+    type       MediaType
+    fileName   String
+    fileSize   Int
+    uploadedAt DateTime
+    messageId  String    @db.ObjectId
+    message    Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+    @@index([messageId])
 }

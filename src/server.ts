@@ -1,7 +1,7 @@
 import cluster from "cluster";
 import * as os from "os";
 import createApp from "./config/app";
-import { env, connectMongoDB, connectPrisma, logger, mongoose } from "./config";
+import { env, logger } from "./config";
 
 let environmentType = env('envType');
 const PORT = env('port');
@@ -23,20 +23,7 @@ async function startServer() {
         cluster.on('online', (worker) => console.log(`Worker ${worker.process.pid} is online`));
     } else {
         try {
-            // await Promise.all([connectPrisma()]);
-            // console.log(`Worker ${process.pid} has connected to the database`);
-            // mongoose.connection.once('open', () => {
             app.listen(PORT, () => console.log(`Server running on port - ${PORT}\n`));
-            // });
-
-            // process.on('SIGTERM', async () => {
-            //     logger.info(`Worker ${process.pid} shutting down`);
-            //     await Promise.all([
-            //         mongoose.connection.close(),
-            //         prisma.$disconnect(),
-            //     ]);
-            //     process.exit(0);
-            // });
         } catch (error) {
             console.error('Failed to connect to the database:', error);
             process.exit(1); // Exit if connection fails
@@ -46,15 +33,7 @@ async function startServer() {
 
 (async () => {
     if (environmentType === "dev") {
-        try {
-            // await Promise.all([connectMongoDB(), connectPrisma()]);
-            await Promise.all([connectPrisma()]);
-
-            (await createApp()).listen(PORT, () => console.log(`Server running on port - ${PORT}`));
-        } catch (error) {
-            console.error('Failed to connect to the database:', error);
-            process.exit(1); // Exit if connection fails
-        }
+        (await createApp()).listen(PORT, () => console.log(`Server running on port - ${PORT}`));
     } else {
         await startServer();
     }

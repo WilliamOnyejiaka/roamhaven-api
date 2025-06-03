@@ -1,5 +1,4 @@
-import { Notification as NotificationModel } from "../models";
-import { INotification } from "../schemas/Notification";
+import { Notification as NotificationRepo } from "../repos";
 import { UserSocket } from "../cache";
 import BaseService from "./bases/BaseService";
 import { Server } from "socket.io";
@@ -8,7 +7,7 @@ import { Namespaces } from "../types/enums";
 export default class Notification extends BaseService {
 
     private readonly userSocketCache = new UserSocket();
-    private readonly model = new NotificationModel();
+    private readonly model = new NotificationRepo();
 
     public async notify(userId: number, type: string, data: any, io: Server) {
         const cache = await this.userSocketCache.get(userId);
@@ -20,14 +19,14 @@ export default class Notification extends BaseService {
 
         const notificationData: any = {
             userId: userId,
-            type: type,
-            channel: 'push',
-            status: isOnline ? 'pending' : 'sent',
+            type: type.toUpperCase(),
+            channel: 'PUSH',
+            status: isOnline ? 'PENDING' : 'SENT',
             priority: 1,
             content: JSON.stringify(data)
         };
 
-        const modelResult = await this.model.create(notificationData);
+        const modelResult = await this.model.insertNotification(notificationData);
         if (modelResult.error) return false;
 
         if (isOnline) {

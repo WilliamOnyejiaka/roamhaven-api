@@ -1,6 +1,6 @@
 import express, { Application, NextFunction, Request, Response } from "express";
 import morgan from "morgan";
-import { cloudinary, corsConfig, env, logger, redisBull, redisPub, redisSub, redisClient, passport, session, initializeIO, connectMongo } from ".";
+import { cloudinary, corsConfig, env, logger, redisBull, redisPub, redisSub, redisClient, passport, session, initializeIO } from ".";
 import {
     auth,
     listing,
@@ -13,7 +13,6 @@ import cors from "cors";
 import { Namespaces, UserType } from "../types/enums";
 import http from 'http';
 import { notification, chat } from "./../events";
-import MongoDBRepo from "../repos/bases/MongoDB";
 import { mongodbClient } from ".";
 
 
@@ -64,26 +63,20 @@ async function createApp() {
 
 
     app.get("/test2", async (req, res) => {
-        interface Pet {
-            type: string
-        };
-
-        // const mon = new MongoDBRepo("notifications");
-        // await mon.connect();
 
         res.status(200).json({
             'error': false,
             // 'message': await mon.findById("6839fb4039f802ad0d31b9aa")
-            'data': await mongodbClient.notification.create({
-                data: {
-                    userId: 1,
-                    status: 'pending',
-                    content: "Testing",
-                    channel: "push",
-                    priority: 1,
-                    type: "listing"
-                }
-            })
+            // 'data': await mongodbClient.notification.create({
+            //     data: {
+            //         userId: 1,
+            //         status: 'pending',
+            //         content: "Testing",
+            //         channel: "push".toUpperCase(),
+            //         priority: 1,
+            //         type: "listing"
+            //     }
+            // })
         });
     });
 
