@@ -24,7 +24,7 @@ async function createApp() {
     };
     const io = await initializeIO(server, redisPub, redisSub);
 
-    await connectMongoDB();
+    // await connectMongoDB();
 
     app.use(express.urlencoded({ extended: true }));
     app.use(cors());
