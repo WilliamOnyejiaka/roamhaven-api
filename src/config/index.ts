@@ -9,7 +9,7 @@ import streamRouter from "./redisStream";
 import passport from "./passport";
 import session from "./session";
 import initializeIO from "./io";
-import { prisma, connectMongoDB, connectPrisma, mongoose } from "./db";
+import { prisma, connectMongo, connectPrisma, mongoose, connectMongoDB, getDb, mongoDbClient } from "./db";
 
 export {
     env,
@@ -26,7 +26,10 @@ export {
     session,
     initializeIO,
     prisma,
-    connectMongoDB,
+    connectMongo,
     connectPrisma,
-    mongoose
+    mongoose,
+    connectMongoDB,
+    getDb,
+    mongoDbClient
 };
