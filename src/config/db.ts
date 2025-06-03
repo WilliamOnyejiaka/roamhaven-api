@@ -1,45 +1,30 @@
 import mongoose from "mongoose";
 import { PrismaClient } from "@prisma/client";
 import retry from 'async-retry';
+import { MongoClient } from 'mongodb';
 import { env, logger } from ".";
 
 const prisma: PrismaClient = new PrismaClient();
 
+async function connectMongoDB() {
+    mongoose.set('strictQuery', false);
 
-const connectMongoDB = async () => {
-    try {
-        await mongoose.connect(env('mongodbURI')!);
-        console.log('MongoDB Connected...');
-    } catch (err: any) {
-        console.error(err.message);
-        process.exit(1); // Exit process with failure
-    }
-};
-
-// async function connectMongoDB() {
-//     mongoose.set('strictQuery', false);
-
-//     try {
-//         await mongoose.connect(env('mongodbURI')!);
-//     } catch (error) {
-//         console.error("Failed to connect to MongoDB: ", error);
-//     }
-//     // return retry(
-//     //     async () => {
-//     //         await mongoose.connect(env('mongodbURI')!, { maxPoolSize: 2 }); // TODO: - note this - Limit connections per worker
-//     //         logger.info(`Worker ${process.pid} connected to MongoDB`);
-//     //     },
-//     //     {
-//     //         retries: 5,
-//     //         factor: 2,
-//     //         minTimeout: 1000,
-//     //         maxTimeout: 5000,
-//     //     }
-//     // ).catch((error) => {
-//     //     logger.error(`Worker ${process.pid} failed to connect to MongoDB:`, error);
-//     //     throw error; // Rethrow to handle in caller
-//     // });
-// }
+    return retry(
+        async () => {
+            await mongoose.connect(env('mongodbURI')!, { maxPoolSize: 2 }); // TODO: - note this - Limit connections per worker
+            logger.info(`Worker ${process.pid} connected to MongoDB`);
+        },
+        {
+            retries: 5,
+            factor: 2,
+            minTimeout: 1000,
+            maxTimeout: 5000,
+        }
+    ).catch((error) => {
+        logger.error(`Worker ${process.pid} failed to connect to MongoDB:`, error);
+        throw error; // Rethrow to handle in caller
+    });
+}
 
 async function connectPrisma() {
     return retry(
@@ -59,4 +44,12 @@ async function connectPrisma() {
     });
 }
 
-export { prisma, connectMongoDB, connectPrisma, mongoose };
+const client = new MongoClient(env('mongodbURI')!);
+
+export const db = async () => {
+    await client.connect();
+    return client.db('your_database_name');
+};
+
+
+export { prisma, connectMongoDB, connectPrisma, mongoose, client };

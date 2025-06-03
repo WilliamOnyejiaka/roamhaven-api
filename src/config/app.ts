@@ -13,6 +13,7 @@ import cors from "cors";
 import { Namespaces, UserType } from "../types/enums";
 import http from 'http';
 import { notification, chat } from "./../events";
+import MongoDBRepo from "../repos/bases/MongoDB";
 
 
 async function createApp() {
@@ -61,10 +62,17 @@ async function createApp() {
     app.use("/api/v1/wishlist", validateJWT([UserType.USER]), wishList);
 
 
-    app.post("/test2", async (req, res) => {
+    app.get("/test2", async (req, res) => {
+        interface Pet {
+            type: string
+        };
+
+        const mon = new MongoDBRepo("notifications");
+        // await mon.connect();
+
         res.status(200).json({
             'error': false,
-            'message': "result"
+            'message': await mon.findById("6839fb4039f802ad0d31b9aa")
         });
     });
 
