@@ -1,11 +1,12 @@
 import constants from "../../constants";
+import MongoDB from "../../repos/bases/MongoDB";
 import Repo from "../../repos/bases/Repo";
 import UserRepo from "../../repos/UserRepo";
 import { ImageMeta } from "../../types";
 import { UserType } from "../../types/enums";
 import { getPagination } from "../../utils";
 
-export default class BaseService<T extends Repo = Repo> {
+export default class BaseService<T extends Repo | MongoDB = Repo> {
 
     protected readonly repo?: T;
 

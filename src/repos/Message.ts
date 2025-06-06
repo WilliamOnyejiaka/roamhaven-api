@@ -23,4 +23,26 @@ export default class Message extends MongoDB {
             return super.handleDatabaseError(error);
         }
     }
+
+    public async messages(chatId: string, skip: number, take: number) {
+        try {
+
+            const where = { chatId };
+
+            const data = await this.prisma.message.findMany({
+                where: where,
+                skip,
+                take,
+                orderBy: {
+                    createdAt: 'desc'
+                }
+            });
+
+            const totalItems = await this.prisma.message.count({ where: where });
+
+            return this.repoResponse(false, 200, null, { items: data, totalItems });
+        } catch (error) {
+            return this.handleDatabaseError(error);
+        }
+    }
 }

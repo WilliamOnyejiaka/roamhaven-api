@@ -40,6 +40,41 @@ async function createApp() {
     const notificationNamespace = io.of(Namespaces.NOTIFICATION);
     const chatNamespace = io.of(Namespaces.CHAT);
 
+    function setupEventLoggingMiddleware(io: any) {
+        // Apply middleware to the /chat namespace
+        const chatNamespace = io.of('/chat');
+
+        // Middleware for incoming events
+        chatNamespace.use((socket: any, next: any) => {
+            // Log all incoming events
+            const originalOn = socket.on.bind(socket);
+            socket.on = function (event: string, ...args: any[]) {
+                console.log(`📡 [Incoming Event] Socket ID: ${socket.id}, Event: ${event}`);
+                return originalOn(event, ...args);
+            };
+
+            // Log connection
+            console.log(`🔗 [Connection] Socket ID: ${socket.id} connected to /chat namespace`);
+            next();
+        });
+
+        // Override emit for outgoing events
+        chatNamespace.on('connection', (socket: any) => {
+            const originalEmit = socket.emit.bind(socket);
+            socket.emit = function (event: string, ...args: any[]) {
+                console.log(`📤 [Outgoing Event] Socket ID: ${socket.id}, Event: ${event}`);
+                return originalEmit(event, ...args);
+            };
+
+            // Log disconnection
+            socket.on('disconnect', () => {
+                console.log(`🔌 [Disconnection] Socket ID: ${socket.id} disconnected from /chat namespace`);
+            });
+        });
+    }
+
+    setupEventLoggingMiddleware(io);
+
     notificationNamespace.use(validateIOJwt([UserType.ADMIN, UserType.USER]));
     chatNamespace.use(validateIOJwt([UserType.ADMIN, UserType.USER]));
 

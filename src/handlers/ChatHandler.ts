@@ -50,6 +50,58 @@ export default class ChatHandler {
         }
     }
 
+    public static async loadChats(io: Server, socket: ISocket, data: any) {
+        const userId = Number(socket.locals.data.id);
+        const chatModel = new Chat();
+
+        let {
+            page,
+            limit
+        } = data;
+
+        if (!page || !limit) {
+            socket.emit(SocketEvents.ERROR, Handler.responseData(400, true, "Invalid data provided"));
+            return;
+        }
+
+        const { skip, take } = { skip: (page - 1) * limit, take: limit };
+        const result = await chatModel.chats(userId, skip, take);
+
+        if (result.error) {
+            socket.emit(SocketEvents.ERROR, Handler.responseData(500, true, "Something went wrong"));
+            return;
+        }
+
+        socket.emit(SocketEvents.CHATS, Handler.responseData(200, true, "Chats were retrieved successfully", result.data));
+        return;
+    }
+
+    public static async loadMessages(io: Server, socket: ISocket, data: any) {
+        const messageRepo = new Message();
+
+        let {
+            page,
+            limit,
+            chatId
+        } = data;
+
+        if (!page || !limit || !chatId) {
+            socket.emit(SocketEvents.ERROR, Handler.responseData(400, true, "Invalid data provided"));
+            return;
+        }
+
+        const { skip, take } = { skip: (page - 1) * limit, take: limit };
+        const result = await messageRepo.messages(chatId, skip, take);
+
+        if (result.error) {
+            socket.emit(SocketEvents.ERROR, Handler.responseData(500, true, "Something went wrong"));
+            return;
+        }
+
+        socket.emit(SocketEvents.MESSAGES, Handler.responseData(200, true, "Messages were retrieved successfully", result.data));
+        return;
+    }
+
     public static async sendMessage(io: Server, socket: ISocket, data: any) {
         const userId = Number(socket.locals.data.id);
         const chatNamespace = io.of(Namespaces.CHAT);

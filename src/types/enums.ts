@@ -48,7 +48,9 @@ export enum Namespaces {
 };
 
 export enum SocketEvents {
-    ERROR = "appError"
+    ERROR = "appError",
+    CHATS = "chats",
+    MESSAGES = "messages"
 }
 
 export enum StreamGroups {

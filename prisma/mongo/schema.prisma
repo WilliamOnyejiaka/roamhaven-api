@@ -46,6 +46,8 @@ model Chat {
     createdAt    DateTime  @default(now())
     updatedAt    DateTime  @updatedAt
     Message      Message[]
+
+    @@index([participants])
 }
 
 enum MessageStatus {
